@@ -30,8 +30,6 @@ urlpatterns = [
     # Main admin panel
     path('admin/', admin.site.urls),
 
-    # Print artifacts for printing with search by name
-    # path('api/print/artifacts', views.PrintArtifactsView.as_view()),
 ]
 
 # Static and media

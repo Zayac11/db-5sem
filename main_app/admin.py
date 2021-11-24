@@ -13,18 +13,18 @@ class ClientAdmin(admin.ModelAdmin):
 
 
 class RequestAdmin(admin.ModelAdmin):
-    list_display = ('client', 'preferences')
+    list_display = ('id', 'client', 'preferences')
     list_filter = ('client',)
     search_fields = ('preferences',)
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('request', 'start_date', 'end_date', 'status')
-    list_filter = ('start_date', 'status')
+    list_display = ('id', 'request', 'timestamp_start', 'timestamp_end', 'status')
+    list_filter = ('timestamp_start', 'status')
 
 
 class AgreementAdmin(admin.ModelAdmin):
-    list_display = ('order', 'description', 'price')
+    list_display = ('id', 'order', 'description', 'price')
 
 
 class WorkerAdmin(admin.ModelAdmin):
@@ -36,20 +36,24 @@ class CarAdmin(admin.ModelAdmin):
 
 
 class DesignAdmin(admin.ModelAdmin):
-    list_display = ('start_date', 'end_date')
+    list_display = ('id', 'timestamp_start', 'timestamp_end')
+    list_filter = ('type', 'timestamp_start')
 
 
 class ProductionAdmin(admin.ModelAdmin):
-    list_display = ('start_date', 'end_date')
+    list_display = ('id', 'timestamp_start', 'timestamp_end')
+    list_filter = ('timestamp_start',)
 
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'type', 'size', 'color')
     search_fields = ('name', 'color')
+    list_filter = ('size', 'type')
 
 
 class DeliveryAdmin(admin.ModelAdmin):
     list_display = ('order', 'timestamp_start', 'timestamp_end', 'description')
+    list_filter = ('timestamp_start', 'timestamp_end')
 
 
 admin.site.register(Client, ClientAdmin)
