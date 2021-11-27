@@ -34,15 +34,33 @@ class WorkerAdmin(admin.ModelAdmin):
 class CarAdmin(admin.ModelAdmin):
     list_display = ('numbers', 'model', 'color', 'worker')
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        kwargs["queryset"] = Worker.objects.filter(position__startswith='Водитель')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class DesignAdmin(admin.ModelAdmin):
     list_display = ('id', 'timestamp_start', 'timestamp_end')
     list_filter = ('type', 'timestamp_start')
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'order':
+            kwargs["queryset"] = Order.objects.all()
+        elif db_field.name == 'worker':
+            kwargs["queryset"] = Worker.objects.filter(position__startswith='Дизайнер')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class ProductionAdmin(admin.ModelAdmin):
     list_display = ('id', 'timestamp_start', 'timestamp_end')
     list_filter = ('timestamp_start',)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'design':
+            kwargs["queryset"] = Design.objects.all()
+        elif db_field.name == 'worker':
+            kwargs["queryset"] = Worker.objects.filter(position__startswith='Мастер')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class ProductAdmin(admin.ModelAdmin):
@@ -54,6 +72,18 @@ class ProductAdmin(admin.ModelAdmin):
 class DeliveryAdmin(admin.ModelAdmin):
     list_display = ('order', 'timestamp_start', 'timestamp_end', 'description')
     list_filter = ('timestamp_start', 'timestamp_end')
+
+    # def formfield_for_manytomany(self, db_field, request, kwargs):
+    #     if db_field.name == 'products':
+    #         kwargs["queryset"] = Product.objects.ALL
+    #     return super().formfield_for_manytomany(db_field, request, kwargs)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'order':
+            kwargs["queryset"] = Order.objects.all()
+        elif db_field.name == 'worker':
+            kwargs["queryset"] = Worker.objects.filter(position__startswith='Водитель')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 admin.site.register(Client, ClientAdmin)

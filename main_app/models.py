@@ -20,9 +20,9 @@ class Client(models.Model):
 
 
 class Request(models.Model):
-    preferences = models.TextField('Описание', max_length=200, blank=False)
+    preferences = models.TextField('Предпочтения', max_length=200, blank=False)
     client = models.ForeignKey('Client', on_delete=models.CASCADE, verbose_name='Клиент',
-                               related_name='requests', null=True)
+                               related_name='requests', null=False)
 
     class Meta:
         verbose_name = 'Заявка'
@@ -45,7 +45,7 @@ class Order(models.Model):
         ('Создан', 'Создан'),
         ('Ожидает подписания договора', 'Ожидает подписания договора'),
         ('Ожидает оплаты', 'Ожидает оплаты'),
-        ('Стадия дизайана', 'Стадия дизайана'),
+        ('Стадия дизайна', 'Стадия дизайна'),
         ('В производстве', 'В производстве'),
         ('Доставляется', 'Доставляется'),
         ('Завершен', 'Завершен'),
@@ -57,8 +57,6 @@ class Order(models.Model):
 
     request = models.OneToOneField('Request', on_delete=models.SET_NULL, verbose_name='Заявка',
                                    related_name='order', null=True)
-    workers = models.ManyToManyField('Worker', verbose_name='Работники',
-                                     related_name='orders', blank=True)
 
     class Meta:
         verbose_name = 'Заказ'
@@ -78,6 +76,8 @@ class Design(models.Model):
     type = models.CharField('Тип', choices=TYPES, max_length=40, default='Компьютерное моделирование')
     order = models.ForeignKey('Order', on_delete=models.SET_NULL, verbose_name='Заказ',
                               related_name='design', null=True)
+    worker = models.ForeignKey('Worker', on_delete=models.SET_NULL, verbose_name='Работник',
+                               related_name='design', null=True)
 
     class Meta:
         verbose_name = 'Дизайн'
@@ -93,6 +93,8 @@ class Production(models.Model):
 
     design = models.OneToOneField('Design', on_delete=models.SET_NULL, verbose_name='Дизайн',
                                   related_name='production', null=True)
+    worker = models.ForeignKey('Worker', on_delete=models.SET_NULL, verbose_name='Работник',
+                               related_name='production', null=True)
 
     class Meta:
         verbose_name = 'Производство'
@@ -111,7 +113,7 @@ class Product(models.Model):
     name = models.CharField('Название', max_length=50, blank=False)
     type = models.CharField('Вид', choices=TYPES, max_length=30, default='Кровать')
     size = models.FloatField('Размер, м3', null=False)
-    color = models.CharField('Цвет', max_length=50, blank=False)
+    color = models.CharField('Цвет', max_length=50, blank=True)
 
     production = models.OneToOneField('Production', on_delete=models.SET_NULL, verbose_name='Производство',
                                       related_name='product', null=True)
@@ -184,6 +186,10 @@ class Delivery(models.Model):
     description = models.TextField('Описание', max_length=200, blank=False)
     order = models.ForeignKey('Order', on_delete=models.SET_NULL, verbose_name='Заказ',
                               related_name='deliveries', null=True)
+    worker = models.ForeignKey('Worker', on_delete=models.SET_NULL, verbose_name='Работник',
+                               related_name='deliveries', null=True)
+    products = models.ManyToManyField('Product', verbose_name='Товары',
+                                      related_name='deliveries', blank=True)
 
     class Meta:
         verbose_name = 'Доставка'
