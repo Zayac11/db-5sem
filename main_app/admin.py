@@ -70,6 +70,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 class DeliveryAdmin(admin.ModelAdmin):
+    readonly_fields = ('number_of_products',)
     list_display = ('order', 'timestamp_start', 'timestamp_end', 'description')
     list_filter = ('timestamp_start', 'timestamp_end')
 

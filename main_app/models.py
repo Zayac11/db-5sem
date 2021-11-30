@@ -3,6 +3,8 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db import models
 
+import re
+
 
 class Client(models.Model):
     first_name = models.CharField('Имя', max_length=50, blank=False)
@@ -14,6 +16,11 @@ class Client(models.Model):
     class Meta:
         verbose_name = 'Клиент'
         verbose_name_plural = 'Клиенты'
+
+    def clean(self):
+        match = len(re.findall(r'^(\+?79?|\+?77?|89?|87?|9|7)(\d{9})$', str(self.phone_number)))
+        if match <= 0:
+            raise ValidationError('Введите корректный номер телефона')
 
     def __str__(self):
         return self.last_name + ' ' + self.first_name
@@ -83,8 +90,14 @@ class Design(models.Model):
         verbose_name = 'Дизайн'
         verbose_name_plural = 'Дизайн'
 
+    def save(self, *args, **kwargs):
+        order = self.order
+        order.status = 'Стадия дизайна'
+        order.save()
+        super().save(*args, kwargs)
+
     def __str__(self):
-        return 'Дизайн для заказа под №' + str(self.order.id)
+        return 'Дизайн №' + str(self.id) + ', для заказа под №' + str(self.order.id)
 
 
 class Production(models.Model):
@@ -99,6 +112,12 @@ class Production(models.Model):
     class Meta:
         verbose_name = 'Производство'
         verbose_name_plural = 'Производство'
+
+    def save(self, *args, **kwargs):
+        order = self.design.order
+        order.status = 'В производстве'
+        order.save()
+        super().save(*args, kwargs)
 
     def __str__(self):
         return 'Производство по дизайну №' + str(self.design.id) + ', ' + 'заказ №' + str(self.design.order.id)
@@ -143,6 +162,11 @@ class Worker(models.Model):
         verbose_name = 'Работник'
         verbose_name_plural = 'Работники'
 
+    def clean(self):
+        match = len(re.findall(r'^(\+?79?|\+?77?|89?|87?|9|7)(\d{9})$', str(self.phone_number)))
+        if match <= 0:
+            raise ValidationError('Введите корректный номер телефона')
+
     def __str__(self):
         return self.position + ' | ' + self.last_name + ' ' + self.first_name
 
@@ -176,6 +200,12 @@ class Agreement(models.Model):
         verbose_name = 'Договор'
         verbose_name_plural = 'Договоры'
 
+    def save(self, *args, **kwargs):
+        order = self.order
+        order.status = 'Ожидает оплаты'
+        order.save()
+        super().save(*args, kwargs)
+
     def __str__(self):
         return 'Договор №' + str(self.id)
 
@@ -190,10 +220,22 @@ class Delivery(models.Model):
                                related_name='deliveries', null=True)
     products = models.ManyToManyField('Product', verbose_name='Товары',
                                       related_name='deliveries', blank=True)
+    number_of_products = models.IntegerField(
+        'Количество товаров', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Доставка'
         verbose_name_plural = 'Доставка'
+
+    def save(self, *args, **kwargs):
+        products = Product.objects.filter(deliveries=self.id)
+        self.number_of_products = len(products)
+
+        order = self.order
+        order.status = 'Доставляется'
+        order.save()
+
+        super().save(*args, kwargs)
 
     def __str__(self):
         return 'Доставка №' + str(self.id)
